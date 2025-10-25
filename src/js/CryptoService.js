@@ -94,11 +94,11 @@ export default class CryptoService {
 
     if (
       signInfo.publicKeyFingerprint !==
-      '72:96:32:27:d6:6c:4c:4d:5f:a0:91:6a:c2:2c:79:3c:d4:5f:43:5c'
+      'a4:26:ab:32:f4:92:4a:79:02:09:42:8f:cd:29:44:f6:43:d6:71:f7'
     ) {
       return {
         status: false,
-        msg: 'Signature check failed (file is not signed by LineageOS)',
+        msg: 'Signature check failed (file is not signed by WitAqua)',
         signInfo: signInfo
       }
     }

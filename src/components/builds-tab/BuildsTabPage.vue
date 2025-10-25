@@ -30,14 +30,7 @@
     </div>
     <div class="list-placeholder" v-else>
       <span>
-        This device doesn't have any builds available, please see
-        <a
-          href="https://wiki.lineageos.org/faq#my-device-is-officially-supported-but-theres-no-zips-for-it-on-the-download-page-where-are-they"
-          target="_blank"
-        >
-          FAQ
-        </a>
-        for more info
+        This device doesn't have any builds available.
       </span>
     </div>
   </div>
@@ -110,7 +103,7 @@ export default {
 
 .builds-tab-page .list-placeholder a {
   text-decoration: none;
-  color: #167c80;
+  color: #00c8ff;
 }
 
 .builds-tab-page .header {
@@ -138,7 +131,7 @@ export default {
 }
 
 .builds-tab-page .header a {
-  color: #167c80;
+  color: #00c8ff;
   text-decoration: none;
   font-weight: 500;
 }

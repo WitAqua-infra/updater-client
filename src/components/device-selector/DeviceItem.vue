@@ -56,7 +56,7 @@ export default {
 }
 
 .device.selected {
-  background: #167c80;
+  background: #00c8ff;
 }
 
 .device.selected .name {

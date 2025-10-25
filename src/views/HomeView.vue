@@ -26,6 +26,15 @@
         <router-link
           class="tab"
           v-bind:to="{
+            name: 'gsi'
+          }"
+        >
+          GSI
+        </router-link>
+
+        <router-link
+          class="tab"
+          v-bind:to="{
             name: 'home_verify'
           }"
         >

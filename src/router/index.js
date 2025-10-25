@@ -50,6 +50,13 @@ const router = createRouter({
           component: ChangesTabPage
         },
         {
+          path: '/',
+          name: 'gsi',
+          beforeEnter() {
+            window.location = "https://github.com/Doze-off/WitAqua_treble/releases"
+          }
+        },
+        {
           path: 'verify',
           name: 'home_verify',
           component: VerifyTabPage

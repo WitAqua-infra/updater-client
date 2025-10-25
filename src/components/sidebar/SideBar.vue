@@ -2,7 +2,7 @@
   <div class="sidebar">
     <div class="logo">
       <router-link to="/">
-        <img src="../../assets/sidebar-logo.svg" alt="LineageOS Logo" />
+        <img src="../../assets/logo.svg" alt="WitAqua Logo" />
       </router-link>
     </div>
     <device-selector v-bind:active-model="activeModel"></device-selector>
@@ -40,12 +40,12 @@ export default {
 
   flex-shrink: 0;
 
-  background: #167c80;
+  background: #00c8ffc5;
 
   height: 100px;
 }
 
 .sidebar .logo img {
-  height: 40px;
+  height: 60px;
 }
 </style>

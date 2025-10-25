@@ -11,20 +11,9 @@
           <h1 class="m-0 flex-none self-stretch text-3xl font-medium">OTA Verifier</h1>
           <div class="order-1 flex-none flex-grow-0 self-stretch">
             <p>
-              You can use your browser to verify that downloaded OTA packages (lineage-*.zip) are
-              signed with LineageOS private keys and are untampered. Drag a file here or use the
+              You can use your browser to verify that downloaded OTA packages (WitAqua-*.zip) are
+              signed with WitAqua private keys and are untampered. Drag a file here or use the
               button below.
-            </p>
-            <p>
-              For manual verification, check our
-              <a
-                href="https://wiki.lineageos.org/verifying-builds.html"
-                target="_blank"
-                class="font-medium text-brand-primary no-underline"
-              >
-                Verifying Build Authenticity
-              </a>
-              guide.
             </p>
           </div>
         </div>

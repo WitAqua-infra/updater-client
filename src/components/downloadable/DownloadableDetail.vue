@@ -61,7 +61,7 @@ export default {
 }
 
 .downloadable-detail .value a {
-  color: #167c80;
+  color: #00c8ff;
   text-decoration: none;
 }
 

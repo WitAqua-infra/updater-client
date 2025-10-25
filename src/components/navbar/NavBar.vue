@@ -7,7 +7,7 @@
       <div class="right">
         <slot name="right">
           <div class="logo">
-            <img src="../../assets/navbar-logo.svg" alt="LineageOS Logo" />
+            <img src="../../assets/logo.svg" alt="WitAqua Logo" />
           </div>
         </slot>
       </div>
@@ -111,7 +111,7 @@ export default {
 }
 
 .navbar .tabs::v-deep(.tab.router-link-exact-active) {
-  border-bottom: 4px solid #167c80;
+  border-bottom: 4px solid #00c8ffff;
 }
 
 @media (max-width: 1024px) {
