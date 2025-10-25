@@ -28,17 +28,6 @@
         >
           Builds
         </router-link>
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'device_changes',
-            params: {
-              model
-            }
-          }"
-        >
-          Changes
-        </router-link>
         <a class="tab" target="_blank" v-bind:href="info_url">
           Guides &amp; info
           <span class="mdi mdi-open-in-new"></span>
