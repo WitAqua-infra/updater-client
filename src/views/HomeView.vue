@@ -1,77 +1,67 @@
 <template>
-  <div class="home-main">
-    <NavBar>
-      <template v-slot:left>
+  <div class="flex flex-col">
+    <NavBar :tabs="tabs">
+      <template #left>
         <span class="text"> All devices </span>
-      </template>
-      <template v-slot:tabs>
-        <router-link
-          class="mobile-visible-tab tab"
-          v-bind:to="{
-            name: 'home_devices'
-          }"
-        >
-          Devices
-        </router-link>
-
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'home_changes'
-          }"
-        >
-          Changes
-        </router-link>
-
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'gsi'
-          }"
-        >
-          GSI
-        </router-link>
-
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'home_verify'
-          }"
-        >
-          OTA Verifier
-        </router-link>
       </template>
     </NavBar>
 
-    <div class="content">
-      <router-view></router-view>
+    <div class="grow overflow-auto">
+      <RouterView />
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
+import { watch } from 'vue'
 import NavBar from '../components/navbar/NavBar.vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'HomeView',
-  components: {
-    NavBar
+const router = useRouter()
+const isMobile = useMediaQuery('(max-width: 1024px)')
+
+watch(
+  isMobile,
+  async (val) => {
+    // Prevent switching on page refresh
+    if (
+      router.currentRoute.value.path !== '/' &&
+      router.currentRoute.value.path !== '/devices' &&
+      router.currentRoute.value.path !== '/changes'
+    )
+      return
+    if (val) {
+      await router.push('/devices')
+    } else {
+      await router.push('/changes')
+    }
+  },
+  { immediate: true }
+)
+
+const tabs = [
+  {
+    to: 'home_devices',
+    label: 'Devices',
+    class: 'lg:hidden'
+  },
+  {
+    to: 'home_changes',
+    label: 'Changes'
+  },
+  {
+    href: 'https://github.com/Doze-off/WitAqua_treble/releases',
+    label: 'GSI',
+    isExternal: true
+  },
+  {
+    to: 'home_verify',
+    label: 'OTA Verifier'
+  },
+  {
+    to: 'home_flash_tools',
+    label: 'Flash Tools'
   }
-}
+]
 </script>
-
-<style scoped>
-.home-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-main .navbar {
-  flex-shrink: 0;
-}
-
-.home-main .content {
-  flex-grow: 1;
-  overflow: auto;
-}
-</style>

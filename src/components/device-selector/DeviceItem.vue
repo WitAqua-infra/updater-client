@@ -1,69 +1,29 @@
 <template>
-  <router-link
-    v-bind:to="{
+  <RouterLink
+    :to="{
       name: 'device_index',
       params: {
-        model
+        model: model
       }
     }"
   >
     <div
-      class="device"
-      v-bind:class="{
-        selected: selected
-      }"
       v-show="!hidden"
+      class="flex items-center justify-between gap-4 border-t border-black/12 p-4 pl-8 text-sm leading-4 font-medium"
+      :class="selected ? 'bg-brand-primary' : ''"
     >
-      <span class="name">
+      <span :class="selected ? 'text-white/87' : ''">
         {{ name }}
       </span>
-      <span class="model">
+      <span :class="selected ? 'text-white/50' : ''">
         {{ model }}
       </span>
     </div>
-  </router-link>
+  </RouterLink>
 </template>
 
-<script>
-export default {
-  name: 'DeviceItem',
-  props: {
-    hidden: Boolean,
-    selected: Boolean,
-    name: String,
-    model: String
-  }
-}
+<script setup lang="ts">
+import type { OemDevice } from '@/stores/device'
+
+defineProps<OemDevice>()
 </script>
-
-<style scoped>
-.device {
-  line-height: 16px;
-
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.device {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  gap: 16px;
-  padding: 16px 16px 16px 32px;
-
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.device.selected {
-  background: #00c8ff;
-}
-
-.device.selected .name {
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.device.selected .model {
-  color: rgba(255, 255, 255, 0.5) !important;
-}
-</style>
