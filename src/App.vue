@@ -1,57 +1,15 @@
 <template>
-  <router-view id="sidebar" name="sidebar"></router-view>
-  <router-view id="main" name="main"></router-view>
-  <horizontal-loader id="loader" v-if="anyLoading"></horizontal-loader>
+  <RouterView name="sidebar"></RouterView>
+  <RouterView id="main" class="h-full w-full grow" name="main"></RouterView>
+  <HorizontalLoader class="absolute bottom-0 left-0" />
 </template>
 
-<script>
+<script setup lang="ts">
+import { useSeoMeta } from '@unhead/vue'
 import HorizontalLoader from './components/utils/HorizontalLoader.vue'
 
-export default {
-  name: 'App',
-  components: {
-    HorizontalLoader
-  },
-  computed: {
-    anyLoading() {
-      return !!this.$store.getters.ongoingRequests
-    }
-  }
-}
+useSeoMeta({
+  titleTemplate: (title) => (title ? `${title} | LineageOS Downloads` : 'LineageOS Downloads'),
+  ogTitle: 'LineageOS Downloads'
+})
 </script>
-
-<style>
-#app {
-  height: 100%;
-  width: 100%;
-
-  display: flex;
-
-  font-family: 'Roboto', sans-serif;
-}
-
-#sidebar {
-  width: 300px;
-  max-width: 30%;
-  min-width: 128px;
-  height: 100%;
-}
-
-#main {
-  flex-grow: 1;
-  height: 100%;
-  width: 100%;
-}
-
-#loader {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-
-@media (max-width: 1024px) {
-  #sidebar {
-    display: none;
-  }
-}
-</style>

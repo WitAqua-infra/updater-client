@@ -1,41 +1,47 @@
 <template>
-  <div class="loader-track">
-    <div class="loader-first"></div>
-    <div class="loader-second"></div>
+  <div v-if="showLoader" class="h-1 w-full overflow-hidden bg-[rgba(22,124,128,0.5)]">
+    <div class="loader-first bg-brand-primary absolute top-0 left-0 h-full"></div>
+    <div class="loader-second bg-brand-primary absolute top-0 left-0 h-full"></div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'HorizontalLoader'
-}
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { useUiStore } from '@/stores/ui'
+
+const store = useUiStore()
+const showLoader = ref(false)
+const HIDE_DELAY_MS = 250
+let hideTimeoutId: NodeJS.Timeout | undefined
+
+watch(
+  () => store.ongoingRequests,
+  (count) => {
+    if (count > 0) {
+      if (hideTimeoutId) {
+        clearTimeout(hideTimeoutId)
+        hideTimeoutId = undefined
+      }
+      showLoader.value = true
+      return
+    }
+
+    if (hideTimeoutId) {
+      clearTimeout(hideTimeoutId)
+    }
+
+    hideTimeoutId = setTimeout(() => {
+      if (store.ongoingRequests === 0) {
+        showLoader.value = false
+      }
+      hideTimeoutId = undefined
+    }, HIDE_DELAY_MS)
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
-.loader-track {
-  height: 4px;
-  width: 100%;
-
-  position: relative;
-
-  overflow: hidden;
-
-  background: rgba(22, 124, 128, 0.5);
-}
-
-.loader-first,
-.loader-second {
-  height: 100%;
-  width: auto;
-
-  top: 0;
-  left: 0;
-
-  background: #00c8ff;
-
-  position: absolute;
-}
-
 .loader-first {
   animation: horizontal-loader-animation-first 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
 }

@@ -1,126 +1,61 @@
 <template>
-  <div class="navbar">
-    <div class="top">
-      <div class="left">
+  <div class="shadow-[0 1px 3px rgba(0, 0, 0, 0.24)] relative w-full shrink-0 text-lg">
+    <div class="top flex justify-between leading-6">
+      <div class="flex items-center overflow-auto p-4 whitespace-nowrap">
         <slot name="left"></slot>
       </div>
-      <div class="right">
-        <slot name="right">
-          <div class="logo">
-            <img src="../../assets/logo.svg" alt="WitAqua Logo" />
-          </div>
-        </slot>
+      <div class="flex shrink-0 items-center gap-2 p-2 lg:gap-4">
+        <button class="btn cursor-pointer rounded-lg p-2" @click="toggleDark()">
+          <MdiIcon :path="isDark ? mdiWeatherNight : mdiWeatherSunny" />
+        </button>
+        <img class="h-6 lg:hidden" src="../../assets/logo.svg" alt="WitAqua Logo" />
       </div>
     </div>
-    <div class="tabs">
-      <slot name="tabs"></slot>
+    <div class="flex overflow-auto leading-4 whitespace-nowrap">
+      <template v-for="tab in tabs" :key="tab.label">
+        <RouterLink
+          v-if="'to' in tab"
+          class="px-4 pt-2 pb-3 text-sm font-medium uppercase no-underline"
+          :class="tab?.class"
+          active-class="border-b-4 border-b-brand-primary"
+          :to="typeof tab.to === 'string' ? { name: tab.to } : tab.to"
+        >
+          <span class="inline-flex items-center gap-1">
+            {{ tab.label }}
+            <MdiIcon v-if="tab?.icon" :path="tab?.icon" :size="14" />
+          </span>
+        </RouterLink>
+        <a
+          v-else
+          class="px-4 pt-2 pb-3 text-sm font-medium uppercase no-underline"
+          :class="tab?.class"
+          :href="tab.href"
+          target="_blank"
+        >
+          <span class="inline-flex items-center gap-1">
+            {{ tab.label }}
+            <MdiIcon v-if="tab?.icon" :path="tab?.icon" :size="14" />
+          </span>
+        </a>
+      </template>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'NavBar',
-  props: {
-    model: {
-      type: String,
-      default: undefined
-    },
-    name: {
-      type: String,
-      default: undefined
-    },
-    oem: {
-      type: String,
-      default: undefined
-    },
-    text: {
-      type: String,
-      default: undefined
-    },
-    versions: {
-      type: Array,
-      default: () => []
-    }
-  }
-}
+<script setup lang="ts">
+import MdiIcon from '@/components/mdi-icon/MdiIcon.vue'
+import { mdiWeatherNight, mdiWeatherSunny } from '@mdi/js'
+import { useDark, useToggle } from '@vueuse/core'
+
+defineProps<{
+  tabs: ({
+    label: string
+    target?: string
+    class?: string
+    icon?: string
+  } & ({ to: string | object } | { href: string }))[]
+}>()
+
+const isDark = useDark()
+const toggleDark = useToggle(isDark)
 </script>
-
-<style scoped>
-.navbar {
-  width: 100%;
-
-  font-size: 18px;
-
-  position: relative;
-
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
-}
-
-.navbar .top {
-  line-height: 24px;
-
-  display: flex;
-  justify-content: space-between;
-}
-
-.navbar .left,
-.navbar .right {
-  padding: 16px;
-}
-
-.navbar .left {
-  display: flex;
-
-  overflow: auto;
-  white-space: nowrap;
-}
-
-.navbar .logo {
-  height: 24px;
-
-  display: none;
-}
-
-.navbar .logo > img {
-  height: 100%;
-}
-
-.navbar .tabs {
-  line-height: 16px;
-
-  overflow: auto;
-  white-space: nowrap;
-
-  display: flex;
-}
-
-.navbar .tabs::v-deep(.tab) {
-  padding: 8px 16px 16px 16px;
-  text-decoration: none;
-
-  display: block;
-
-  font-size: 14px;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.navbar .tabs::v-deep(.mobile-visible-tab) {
-  display: none;
-}
-
-.navbar .tabs::v-deep(.tab.router-link-exact-active) {
-  border-bottom: 4px solid #00c8ffff;
-}
-
-@media (max-width: 1024px) {
-  .navbar .tabs::v-deep(.mobile-visible-tab) {
-    display: block;
-  }
-
-  .navbar .logo {
-    display: block;
-  }
-}
-</style>

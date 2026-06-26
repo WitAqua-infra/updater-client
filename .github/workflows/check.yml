@@ -3,15 +3,31 @@ name: check
 on: [push, pull_request]
 
 jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Build container
+        run: docker build --file ./fly/Dockerfile .
+
   check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 11
 
       - name: Run [ci, lint, format]
         run: |
-          yarn install --immutable
-          yarn run lint
-          yarn run format -- --check --no-write
+          pnpm install --frozen-lockfile
+          pnpm run lint
+          pnpm run format --check --no-write

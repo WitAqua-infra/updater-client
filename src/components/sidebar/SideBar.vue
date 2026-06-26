@@ -1,51 +1,18 @@
 <template>
-  <div class="sidebar">
-    <div class="logo">
-      <router-link to="/">
-        <img src="../../assets/logo.svg" alt="WitAqua Logo" />
-      </router-link>
-    </div>
-    <device-selector v-bind:active-model="activeModel"></device-selector>
+  <div
+    class="shadow-[0 1px 3px rgba(0, 0, 0, 0.24)] relative hidden h-full w-75 max-w-[30%] min-w-32 flex-col lg:flex"
+  >
+    <RouterLink to="/">
+      <div class="logo bg-brand-primary flex h-25 shrink-0 items-center justify-center">
+        <img class="h-10" src="../../assets/logo.svg" alt="WitAqua Logo" />
+      </div>
+    </RouterLink>
+    <DeviceSelector :active-model="activeModel" />
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import DeviceSelector from '../device-selector/DeviceSelector.vue'
 
-export default {
-  name: 'SideBar',
-  components: {
-    DeviceSelector
-  },
-  props: {
-    activeModel: String
-  }
-}
+defineProps<{ activeModel?: string }>()
 </script>
-
-<style scoped>
-.sidebar {
-  display: flex;
-  flex-direction: column;
-
-  position: relative;
-
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
-}
-
-.sidebar .logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  background: #00c8ffc5;
-
-  height: 100px;
-}
-
-.sidebar .logo img {
-  height: 60px;
-}
-</style>
