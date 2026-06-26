@@ -1,0 +1,144 @@
+import forge from 'node-forge'
+import { sha1, sha256 } from '@awasm/noble'
+import type { VerifyResult } from './CryptoService'
+
+const u8ArrayToString = (data: Uint8Array): string =>
+  String.fromCharCode.apply(null, Array.from(data))
+
+const verifyPackage = async (blob: Blob): Promise<VerifyResult> => {
+  if (blob.size < 6) {
+    return {
+      status: false,
+      msg: 'No signature in file (too small)'
+    }
+  }
+
+  const footer = new Uint8Array(await blob.slice(-6).arrayBuffer())
+  const commentSize = (footer[4] & 0xff) | ((footer[5] & 0xff) << 8)
+  const signatureStart = (footer[0] & 0xff) | ((footer[1] & 0xff) << 8)
+
+  if (footer[2] !== 0xff || footer[3] !== 0xff) {
+    return {
+      status: false,
+      msg: 'No signature in file (no footer)'
+    }
+  }
+
+  // Check that we have found the start of the
+  // end-of-central-directory record.
+  const eocd = new Uint8Array(await blob.slice(-(commentSize + 22)).arrayBuffer())
+
+  if (eocd[0] !== 0x50 || eocd[1] !== 0x4b || eocd[2] !== 0x05 || eocd[3] !== 0x06) {
+    return {
+      status: false,
+      msg: 'No signature in file (bad footer)'
+    }
+  }
+
+  for (let i = 4; i < eocd.length - 3; ++i) {
+    if (eocd[i] === 0x50 && eocd[i + 1] === 0x4b && eocd[i + 2] === 0x05 && eocd[i + 3] === 0x06) {
+      return {
+        status: false,
+        msg: 'EOCD marker found after start of EOCD'
+      }
+    }
+  }
+
+  const signature = new Uint8Array(
+    await blob.slice(blob.size - signatureStart, blob.size - 6).arrayBuffer()
+  )
+  const asn = forge.asn1.fromDer(u8ArrayToString(signature))
+  let pkcs
+
+  try {
+    pkcs = forge.pkcs7.messageFromAsn1(asn)
+  } catch (e) {
+    return {
+      status: false,
+      msg: e instanceof Error ? e.message : String(e)
+    }
+  }
+
+  const certificate = (pkcs as forge.pkcs7.PkcsSignedData).certificates[0]
+  const signInfo = {
+    // Subject
+    commonName: certificate.subject.getField('CN')?.value,
+    countryName: certificate.subject.getField('C')?.value,
+    localityName: certificate.subject.getField('L')?.value,
+    organizationalUnitName: certificate.subject.getField('OU')?.value,
+    organizationName: certificate.subject.getField('O')?.value,
+    stateOrProvinceName: certificate.subject.getField('ST')?.value,
+
+    // Public key fingerprint
+    publicKeyFingerprint: forge.pki.getPublicKeyFingerprint(certificate.publicKey, {
+      encoding: 'hex',
+      delimiter: ':'
+    }),
+
+    // Miscellaneous
+    serialNumber: certificate.serialNumber,
+    validity: certificate.validity
+  }
+
+  let hasher
+  switch (certificate.siginfo.algorithmOid) {
+    case forge.pki.oids.sha1WithRSAEncryption:
+      hasher = sha1.create()
+      break
+    case forge.pki.oids.sha256WithRSAEncryption:
+      hasher = sha256.create()
+      break
+    default:
+      return {
+        status: false,
+        msg: `Unsupported algorithmOid ${certificate.siginfo.algorithmOid}`,
+        signInfo: signInfo
+      }
+  }
+
+  const messageBlob = blob.slice(0, blob.size - commentSize - 2)
+  const reader = messageBlob.stream().getReader()
+
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    hasher.update(value)
+  }
+
+  const messageDigest = u8ArrayToString(hasher.digest())
+  const publicKey = certificate.publicKey as forge.pki.rsa.PublicKey
+
+  if (!publicKey.verify(messageDigest, pkcs.rawCapture.signature)) {
+    return {
+      status: false,
+      msg: 'Signature check failed (checksum mismatch)',
+      signInfo: signInfo
+    }
+  }
+
+  switch (signInfo.publicKeyFingerprint) {
+    case 'a4:26:ab:32:f4:92:4a:79:02:09:42:8f:cd:29:44:f6:43:d6:71:f7':
+      return {
+        status: true,
+        msg: 'Signature check passed',
+        signInfo: signInfo
+      }
+    case '48:59:00:56:3d:27:2c:46:ae:11:86:05:a4:74:19:ac:09:ca:8c:11':
+      return {
+        status: false,
+        msg: 'Signature check failed (file is signed using AOSP testkey)',
+        signInfo: signInfo
+      }
+    default:
+      return {
+        status: false,
+        msg: 'Signature check failed (file is not signed by WitAqua)',
+        signInfo: signInfo
+      }
+  }
+}
+
+self.onmessage = async (event: MessageEvent<Blob>) => {
+  const result = await verifyPackage(event.data)
+  self.postMessage(result)
+}

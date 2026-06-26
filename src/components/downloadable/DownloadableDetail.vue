@@ -1,85 +1,65 @@
 <template>
-  <div class="downloadable-detail">
-    <div class="title opacity-50">{{ title }}</div>
-    <div class="value">
+  <div class="block lg:flex">
+    <div class="block w-full shrink-0 opacity-50 lg:inline-block lg:w-1/5">{{ title }}</div>
+    <div class="block w-full shrink-0 break-all lg:inline-block lg:w-4/5">
       {{ value }}
       <div v-if="title == 'SHA256'">
-        <a href="#" v-on:click="compareSha256">Compare</a>
-        <input class="hidden" type="file" ref="input" />
+        <a class="text-brand-primary no-underline" href="#" @click="compareSha256">Compare</a>
+        <input ref="input" class="hidden" type="file" />
       </div>
     </div>
   </div>
+  <ConfirmDialog
+    :open="dialog.open"
+    :title="dialog.title"
+    confirm-label="OK"
+    @confirm="dialog.open = false"
+    @cancel="dialog.open = false"
+  >
+    {{ dialog.message }}
+  </ConfirmDialog>
 </template>
 
-<script>
-export default {
-  name: 'DownloadableDetail',
-  props: {
-    title: String,
-    value: String
-  },
-  methods: {
-    compareSha256(event) {
-      event.preventDefault()
+<script setup lang="ts">
+import { useTemplateRef, reactive } from 'vue'
+import ConfirmDialog from '@/components/utils/ConfirmDialog.vue'
 
-      const input = this.$refs.input
-      input.onchange = () => {
-        const fileReader = new FileReader()
-        fileReader.onload = async () => {
-          const hash = await crypto.subtle.digest('SHA-256', await fileReader.result)
-          const hashString = [...new Uint8Array(hash)]
-            .map((x) => x.toString(16).padStart(2, '0'))
-            .join('')
+const props = defineProps<{
+  title: string
+  value: string
+}>()
 
-          if (this.$props.value !== hashString) {
-            alert(`SHA256: ${this.$props.value} != ${hashString}`)
-          } else {
-            alert('SHA256: OK')
-          }
-        }
-        fileReader.readAsArrayBuffer(input.files[0])
+const input = useTemplateRef('input')
+const dialog = reactive({ open: false, title: '', message: '' })
+
+function showDialog(title: string, message: string) {
+  dialog.title = title
+  dialog.message = message
+  dialog.open = true
+}
+
+function compareSha256(event: PointerEvent) {
+  event.preventDefault()
+  if (!input.value) return
+  input.value.onchange = () => {
+    if (!input.value || !input.value.files || !input.value.files[0]) return
+    const fileReader = new FileReader()
+    fileReader.onload = async () => {
+      if (!fileReader.result || !(fileReader.result instanceof ArrayBuffer)) return
+      const hash = await crypto.subtle.digest('SHA-256', fileReader.result)
+      const hashString = [...new Uint8Array(hash)]
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('')
+
+      if (props.value !== hashString) {
+        showDialog('SHA256 Mismatch', `Expected: ${props.value}\n\nGot: ${hashString}`)
+      } else {
+        showDialog('SHA256', 'Matches')
       }
-      input.click()
     }
+    fileReader.readAsArrayBuffer(input.value.files[0])
   }
+  input.value.value = ''
+  input.value.click()
 }
 </script>
-
-<style scoped>
-.downloadable-detail {
-  display: flex;
-}
-
-.downloadable-detail .title,
-.downloadable-detail .value {
-  display: inline-block;
-}
-
-.downloadable-detail .title {
-  width: 20%;
-  flex-shrink: 0;
-}
-
-.downloadable-detail .value a {
-  color: #00c8ff;
-  text-decoration: none;
-}
-
-.downloadable-detail .value {
-  width: 80%;
-  flex-shrink: 0;
-  word-wrap: break-word;
-}
-
-@media (max-width: 1024px) {
-  .downloadable-detail {
-    display: block;
-  }
-
-  .downloadable-detail .title,
-  .downloadable-detail .value {
-    display: block;
-    width: 100%;
-  }
-}
-</style>

@@ -1,27 +1,11 @@
+import type { RouteLocationNormalized, RouteLocationNormalizedLoaded } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
 import DeviceView from '../views/DeviceView.vue'
 import ErrorView from '../views/ErrorView.vue'
-import FastbootView from '../views/FastbootView.vue'
 import HomeView from '../views/HomeView.vue'
 import SideBar from '../components/sidebar/SideBar.vue'
-import ChangesTabPage from '../components/changes-tab/ChangesTabPage.vue'
-import Builds from '../components/builds-tab/BuildsTabPage.vue'
-import VerifyTabPage from '../components/verify-tab/VerifyTabPage.vue'
-import DevicesTabPage from '../components/devices-tab/DevicesTabPage.vue'
-import MediaQueryUtils from '../js/MediaQueryUtils'
-
-const getRedirectForHomeIndex = (deviceType) => {
-  if (deviceType !== MediaQueryUtils.DESKTOP_TYPE) {
-    return {
-      name: 'home_devices'
-    }
-  } else {
-    return {
-      name: 'home_changes'
-    }
-  }
-}
+import { useMediaQuery } from '@vueuse/core'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -35,31 +19,24 @@ const router = createRouter({
       },
       children: [
         {
-          path: '',
-          name: 'home_index',
-          redirect: () => getRedirectForHomeIndex(MediaQueryUtils.getDeviceType())
-        },
-        {
           path: 'devices',
           name: 'home_devices',
-          component: DevicesTabPage
+          component: () => import('@/components/devices-tab/DevicesTab.vue')
         },
         {
           path: 'changes',
           name: 'home_changes',
-          component: ChangesTabPage
-        },
-        {
-          path: '/',
-          name: 'gsi',
-          beforeEnter() {
-            window.location = "https://github.com/Doze-off/WitAqua_treble/releases"
-          }
+          component: () => import('@/components/changes-tab/ChangesTab.vue')
         },
         {
           path: 'verify',
           name: 'home_verify',
-          component: VerifyTabPage
+          component: () => import('@/components/verify-tab/VerifyTab.vue')
+        },
+        {
+          path: 'flash/:tool(adb|fastboot|odin)?',
+          name: 'home_flash_tools',
+          component: () => import('@/components/flash-tools-tab/FlashToolsTab.vue')
         }
       ]
     },
@@ -89,13 +66,13 @@ const router = createRouter({
         {
           path: 'builds',
           name: 'device_builds',
-          component: Builds,
+          component: () => import('@/components/builds-tab/BuildsTab.vue'),
           props: true
         },
         {
           path: 'changes',
           name: 'device_changes',
-          component: ChangesTabPage,
+          component: () => import('@/components/changes-tab/ChangesTab.vue'),
           props: true
         }
       ]
@@ -116,15 +93,6 @@ const router = createRouter({
           }
         }
       ]
-    },
-    {
-      path: '/fastboot',
-      name: 'fastboot',
-      props: true,
-      components: {
-        sidebar: SideBar,
-        main: FastbootView
-      }
     },
     {
       path: '/error',
@@ -150,16 +118,18 @@ const router = createRouter({
     }
   ]
 })
-export default router
 
-MediaQueryUtils.onDeviceTypeChange(async (deviceType) => {
-  const name = router.currentRoute.value.name
-  if (name === 'home_devices' || name === 'home_changes') {
-    const newRoute = getRedirectForHomeIndex(deviceType)
-    try {
-      await router.push(newRoute)
-    } catch (err) {
-      console.error(err)
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalizedLoaded) => {
+  if (to.path === '/') {
+    const isMobile = useMediaQuery('(max-width: 1024px)')
+    if (isMobile.value) {
+      await router.push('/devices')
+    } else {
+      await router.push('/changes')
     }
+  } else if (to.path === '/flash' || to.path === '/flash/') {
+    await router.push(to.name === from.name ? from.fullPath : '/flash/fastboot')
   }
 })
+
+export default router

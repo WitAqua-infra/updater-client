@@ -1,30 +1,18 @@
 <template>
-  <div
-    class="border-b border-solid border-black border-opacity-15 p-6 md:p-4 dark:border-white dark:border-opacity-15"
-  >
-    <div class="text-xs font-medium uppercase tracking-widest text-brand-primary" v-if="title">
+  <div class="border-b border-solid border-black/15 p-4 md:p-6 dark:border-white/15">
+    <div v-if="title" class="text-brand-primary text-xs font-medium tracking-widest uppercase">
       {{ title }}
     </div>
-    <template v-for="item in items" :key="item.id">
-      <downloadable-item v-bind="item"></downloadable-item>
-    </template>
+    <DownloadableItem v-for="item in items" :key="item.sha256" v-bind="item" />
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import type { BuildFile } from '@/stores/device'
 import DownloadableItem from './DownloadableItem.vue'
 
-export default {
-  name: 'DownloadableGroup',
-  components: {
-    DownloadableItem
-  },
-  props: {
-    title: {
-      type: String,
-      default: ''
-    },
-    items: Array
-  }
-}
+defineProps<{
+  title?: string
+  items: BuildFile[]
+}>()
 </script>
