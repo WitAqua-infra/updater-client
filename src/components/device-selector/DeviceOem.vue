@@ -1,103 +1,45 @@
 <template>
-  <collapsible-item
-    class="oem border-b border-solid border-black border-opacity-15 dark:border-white dark:border-opacity-15"
-    v-bind:forceExpanded="forceExpanded"
+  <CollapsibleItem
     v-show="!hidden"
+    class="border-b border-solid border-black/15 select-none dark:border-white/15"
+    :forceExpanded="forceExpanded"
   >
-    <template v-slot:title="{ isExpanded, toggleManualExpansion }">
+    <template #title="{ isExpanded, toggleManualExpansion }">
       <div
-        class="title-container"
-        v-on:click="toggleManualExpansion"
-        v-bind:class="{
-          expanded: isExpanded
+        class="relative flex h-12 cursor-pointer items-center justify-between p-4 text-sm leading-4 font-medium transition-[height,padding,background] duration-250 ease-out"
+        :class="{
+          'h-16 bg-black/10 px-4 py-6 dark:bg-white/5': isExpanded
         }"
+        @click="toggleManualExpansion"
       >
-        <span class="title">
+        <span>
           {{ name }}
         </span>
-        <i class="mdi mdi-chevron-down icon opacity-35" v-if="!forceExpanded"> </i>
+        <MdiIcon
+          :path="mdiChevronDown"
+          class="text-2xl opacity-35 transition-transform duration-125 ease-out"
+          :class="isExpanded && '-rotate-180'"
+        />
       </div>
     </template>
-    <template v-slot:content>
+    <template #content>
       <div class="devices-container">
         <div class="devices">
           <template v-for="device in devices" :key="device.model">
-            <device-item v-bind="device"></device-item>
+            <DeviceItem v-bind="device"></DeviceItem>
           </template>
         </div>
       </div>
     </template>
-  </collapsible-item>
+  </CollapsibleItem>
 </template>
 
-<script>
+<script setup lang="ts">
+import type { Oem } from '@/stores/device'
 import CollapsibleItem from '../utils/CollapsibleItem.vue'
 import DeviceItem from './DeviceItem.vue'
+import { mdiChevronDown } from '@mdi/js'
+import MdiIcon from '@/components/mdi-icon/MdiIcon.vue'
 
-export default {
-  name: 'DeviceOem',
-  props: {
-    name: String,
-    devices: Array,
-    forceExpanded: {
-      type: Boolean,
-      default: false
-    },
-    hidden: {
-      type: Boolean,
-      default: false
-    }
-  },
-  components: {
-    CollapsibleItem,
-    DeviceItem
-  }
-}
+defineProps<Oem>()
 </script>
-
-<style scoped>
-.oem {
-  user-select: none;
-}
-
-.oem .title-container {
-  line-height: 16px;
-
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.oem .title-container {
-  height: 48px;
-  padding: 16px;
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-
-  transition:
-    height 0.25s ease-out,
-    padding 0.25s ease-out,
-    background 0.25s ease-out;
-
-  cursor: pointer;
-}
-
-.oem .title-container.expanded {
-  height: 64px;
-  padding: 24px 16px;
-
-  @apply bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-5;
-}
-
-.oem .title-container .icon {
-  font-size: 24px;
-
-  transition:
-    top 0.25s ease-out,
-    transform 0.125s ease-out;
-}
-
-.oem .title-container.expanded .icon {
-  transform: rotate(-180deg);
-}
-</style>

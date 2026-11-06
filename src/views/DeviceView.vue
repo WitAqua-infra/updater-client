@@ -1,118 +1,83 @@
 <template>
-  <div class="device-main">
-    <NavBar>
-      <template v-slot:left>
-        <span class="oem">{{ oem }}</span>
-        <i class="mdi mdi-chevron-right arrow"></i>
-        <span class="name">{{ name }}</span>
-        <span class="model opacity-50">{{ model }}</span>
-      </template>
-      <template v-slot:tabs>
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'home_index'
-          }"
-        >
-          Home
-          <i class="mdi mdi-exit-to-app"></i>
-        </router-link>
-        <router-link
-          class="tab"
-          v-bind:to="{
-            name: 'device_builds',
-            params: {
-              model
-            }
-          }"
-        >
-          Builds
-        </router-link>
-        <a class="tab" target="_blank" v-bind:href="info_url">
-          Guides &amp; info
-          <span class="mdi mdi-open-in-new"></span>
-        </a>
+  <div class="flex flex-col">
+    <NavBar :tabs="tabs">
+      <template #left>
+        <span>{{ oem }}</span>
+        <MdiIcon :path="mdiChevronRight" :size="18" class="mx-2 h-full" />
+        <span class="break-all">{{ name }}</span>
+        <span class="ml-2 text-base opacity-50">{{ model }}</span>
       </template>
     </NavBar>
 
-    <div class="content">
-      <router-view></router-view>
+    <div class="grow overflow-auto">
+      <RouterView />
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import NavBar from '../components/navbar/NavBar.vue'
-import ApiService from '../js/ApiService'
-import { beforeTryError } from '../js/router_utils'
+import { loadDeviceBeforeHook } from '@/hooks/loadBeforeHooks'
+import { computed, watch, ref } from 'vue'
+import { useDeviceStore } from '@/stores/device'
+import MdiIcon from '@/components/mdi-icon/MdiIcon.vue'
+import { mdiChevronRight, mdiExitToApp, mdiOpenInNew } from '@mdi/js'
 
-const loadDeviceBeforeHook = beforeTryError((to) => {
-  return ApiService.loadDevice(to.params.model)
-})
+const props = defineProps<{
+  model: string
+}>()
 
-export default {
-  name: 'DeviceView',
-  components: {
-    NavBar
-  },
-  props: {
-    model: String
-  },
-  data() {
-    return {
-      info_url: '',
-      name: '',
-      oem: ''
-    }
-  },
-  beforeRouteEnter: loadDeviceBeforeHook,
-  beforeRouteUpdate: loadDeviceBeforeHook,
-  watch: {
-    model() {
-      this.loadDeviceDetails()
-    }
-  },
-  mounted() {
-    this.loadDeviceDetails()
-  },
-  methods: {
-    loadDeviceDetails() {
-      const data = this.$store.getters.getDevice(this.model)
-      if (!data) {
-        throw new Error('Failed to get device-main data')
-      }
+const store = useDeviceStore()
 
-      ;['info_url', 'name', 'oem'].forEach((k) => (this[k] = data[k]))
-    }
+const infoUrl = ref('')
+const name = ref('')
+const oem = ref('')
+
+function loadDeviceDetails() {
+  const data = store.getDevice(props.model)
+  if (!data) {
+    throw new Error('Failed to get device-main data')
   }
+  infoUrl.value = data.info_url
+  name.value = data.name
+  oem.value = data.oem
 }
+
+watch(() => props.model, loadDeviceDetails, { immediate: true })
+
+const tabs = computed(() => [
+  {
+    to: 'home_view',
+    label: 'Home',
+    icon: mdiExitToApp
+  },
+  {
+    to: {
+      name: 'device_builds',
+      params: {
+        model: props.model
+      }
+    },
+    label: 'Builds'
+  },
+  {
+    to: {
+      name: 'device_changes',
+      params: {
+        model: props.model
+      }
+    },
+    label: 'Changes'
+  },
+  {
+    href: infoUrl.value,
+    label: 'Guides & info',
+    icon: mdiOpenInNew
+  }
+])
+
+defineOptions({
+  beforeRouteEnter: loadDeviceBeforeHook,
+  beforeRouteUpdate: loadDeviceBeforeHook
+})
 </script>
-
-<style scoped>
-.device-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.device-main .navbar {
-  flex-shrink: 0;
-}
-
-.device-main .navbar .arrow,
-.device-main .navbar .model {
-  margin: 0 8px;
-}
-
-.device-main .navbar .arrow {
-  height: 24px;
-}
-
-.device-main .navbar .model {
-  font-size: 16px;
-}
-
-.device-main .content {
-  flex-grow: 1;
-  overflow: auto;
-}
-</style>
